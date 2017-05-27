@@ -7,5 +7,7 @@ while true do
   mottaker = gets.chomp
   print "melding > "
   melding = gets.chomp
-  send_melding(mottaker, krypter(1, melding))
+  print "kryptering > "
+  kode = gets.chomp.to_i
+  send_melding(mottaker, krypter(kode, melding))
 end

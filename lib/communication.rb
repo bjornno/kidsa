@@ -70,7 +70,11 @@ meg = gets.chomp
 
 def skriv_melding(melding)
   puts ""
-  puts "Ny melding: #{dekrypter(1, melding)}"
+  puts "Ny melding mottat"
+  puts "dekrypter?"
+  print "kode eller 0 hvis ikke kryptert > "
+  kode = gets.chomp.to_i
+  puts "Melding: #{dekrypter(kode, melding)}"
   puts ""
   print "> "
 end
