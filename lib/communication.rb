@@ -1,6 +1,6 @@
 require 'rest-client'
 
-$server_addr = "http://localhost:4567"
+$server_addr = "https://krypto-meldinger.herokuapp.com/"
 
 def abonner(receiver, write)
   Thread.new do
@@ -11,7 +11,7 @@ def abonner(receiver, write)
         t = RestClient.get("#{$server_addr}/#{receiver}")
         if message != t 
           message = t
-          write.call(receiver, message)
+          write.call(message)
         end
         sleep 2
       rescue
@@ -63,3 +63,17 @@ def dekrypter(key, message)
   end
   decrypted
 end
+
+puts "Hva heter du?"
+print "> "
+meg = gets.chomp
+
+def skriv_melding(melding)
+  puts ""
+  puts "Ny melding: #{dekrypter(1, melding)}"
+  puts ""
+  print "> "
+end
+
+abonner(meg, method(:skriv_melding))
+sleep 1
