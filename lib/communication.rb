@@ -1,17 +1,18 @@
 require 'rest-client'
+require 'json'
 
 $server_addr = "https://krypto-meldinger.herokuapp.com/"
 
-def abonner(receiver, write)
+def abonner(mottaker, display_func)
   Thread.new do
-    puts "Starter å lytte etter meldinger til #{receiver}"
-    message = nil
+    puts "Starter å lytte etter meldinger til #{mottaker}"
+    melding = {}
     while true do
       begin
-        t = RestClient.get("#{$server_addr}/#{receiver}")
-        if message != t 
-          message = t
-          write.call(message)
+        t = JSON.parse(RestClient.get("#{$server_addr}/#{mottaker}"), symbolize_names: true)
+        if melding.melding != t.melding 
+          melding = t
+          display_func.call(melding)
         end
         sleep 2
       rescue
@@ -20,16 +21,20 @@ def abonner(receiver, write)
   end
 end
 
-def send_melding(receiver, message)
+def send_melding(mottaker, melding)
   begin
-    puts "sender melding til #{receiver}"
+    puts "sender melding til #{mottaker}"
     5.times do 
       print "."
       sleep 0.2
     end
     puts ""
     print "> "
-    RestClient.put("#{$server_addr}/#{receiver}/#{URI.encode(message)}", {}, {})
+    RestClient.put("#{$server_addr}/#{mottaker}/#{URI.encode(melding)}", {
+        avsender: $meg,
+        mottaker: mottaker,
+        melding: melding
+      }.to_json)
   rescue
     puts "feilet å sende melding"
   end
@@ -66,18 +71,22 @@ end
 
 puts "Hva heter du?"
 print "> "
-meg = gets.chomp
+$meg = gets.chomp
 
 def skriv_melding(melding)
   puts ""
   puts "Ny melding mottat"
-  puts "dekrypter?"
-  print "kode eller 0 hvis ikke kryptert > "
-  kode = gets.chomp.to_i
-  puts "Melding: #{dekrypter(kode, melding)}"
+  if (melding.kryptert)
+    puts "dekrypter?"
+    print "kode > "
+    kode = gets.chomp.to_i
+  else 
+    kode = 0
+  end
+  puts "Melding: #{dekrypter(kode, melding.melding)}"
   puts ""
   print "> "
 end
 
-abonner(meg, method(:skriv_melding))
+abonner($meg, method(:skriv_melding))
 sleep 1

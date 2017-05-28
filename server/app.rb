@@ -1,11 +1,14 @@
 require 'sinatra'
+require 'json'
 
 $messages = {}
 
 get '/:name' do
-  $messages[params[:name]]
+  content_type :json
+  $messages[params[:name]].to_json
 end
 
 put '/:name/:message' do
-  $messages[params[:name]] = params[:message]
+  message = JSON.parse(request.body.read, symbolize_names: true)
+  $messages[params[:name]] = message
 end
