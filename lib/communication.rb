@@ -13,22 +13,20 @@ $client = RestClient::Resource.new(
 def abonner(mottaker, display_func)
   puts "Starter å lytte etter meldinger til #{mottaker}"
   melding = {}
-  Thread.new { 
-    while true do
-      begin
-        t = JSON.parse($client[mottaker].get, symbolize_names: true)
-        if melding.melding != t.melding 
-          melding = t
-          display_func.call(melding)
-        end
-      rescue
+  while true do
+    begin
+      t = JSON.parse($client[mottaker].get, symbolize_names: true)
+      if melding[:melding] != t[:melding] 
+        melding = t
+        display_func.call(melding)
       end
-      sleep 20
+    rescue
     end
-  }
+    sleep 2
+  end
 end
 
-def send_melding(mottaker, melding)
+def send_melding(mottaker, avsender, melding, kryptert)
   begin
     puts "sender melding til #{mottaker}"
     5.times do 
@@ -38,9 +36,10 @@ def send_melding(mottaker, melding)
     puts ""
     print "> "
     $client[mottaker].put({
-      avsender: $meg,
+      avsender: avsender,
       mottaker: mottaker,
-      melding: melding
+      melding: melding,
+      kryptert: kryptert
     }.to_json)
   rescue Exception => e
     puts "Feilet å sende melding, exception: #{e.inspect}"
@@ -76,24 +75,17 @@ def dekrypter(key, message)
   decrypted
 end
 
-puts "Hva heter du?"
-print "> "
-$meg = gets.chomp
-
 def skriv_melding(melding)
   puts ""
-  puts "Ny melding mottat"
-  if (melding.kryptert)
-    puts "dekrypter?"
-    print "kode > "
+  puts "Ny melding mottat fra #{melding[:avsender]}"
+  if (melding[:kryptert])
+    puts "Meldingen er kryptert"
+    print "skriv inn krypteringskoden > "
     kode = gets.chomp.to_i
   else 
     kode = 0
   end
-  puts "Melding: #{dekrypter(kode, melding.melding)}"
+  puts "Melding: #{dekrypter(kode, melding[:melding])}"
   puts ""
   print "> "
 end
-
-abonner($meg, method(:skriv_melding))
-sleep 1
