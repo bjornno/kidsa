@@ -30,7 +30,7 @@ def send_melding(mottaker, melding)
     end
     puts ""
     print "> "
-    RestClient.put("#{$server_addr}/#{mottaker}/#{URI.encode(melding)}", {
+    RestClient.put("#{$server_addr}/#{mottaker}/", {
         avsender: $meg,
         mottaker: mottaker,
         melding: melding
