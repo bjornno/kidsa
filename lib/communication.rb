@@ -3,22 +3,29 @@ require 'json'
 
 $server_addr = "https://krypto-meldinger.herokuapp.com/"
 
+$client = RestClient::Resource.new(
+  $server_addr,
+  headers: {
+    'Content-Type' => 'application/json'
+  }
+)
+
 def abonner(mottaker, display_func)
-  Thread.new do
-    puts "Starter å lytte etter meldinger til #{mottaker}"
-    melding = {}
+  puts "Starter å lytte etter meldinger til #{mottaker}"
+  melding = {}
+  Thread.new { 
     while true do
       begin
-        t = JSON.parse(RestClient.get("#{$server_addr}/#{mottaker}"), symbolize_names: true)
+        t = JSON.parse($client[mottaker].get, symbolize_names: true)
         if melding.melding != t.melding 
           melding = t
           display_func.call(melding)
         end
-        sleep 2
       rescue
       end
+      sleep 20
     end
-  end
+  }
 end
 
 def send_melding(mottaker, melding)
@@ -30,13 +37,13 @@ def send_melding(mottaker, melding)
     end
     puts ""
     print "> "
-    RestClient.put("#{$server_addr}/#{mottaker}/", {
-        avsender: $meg,
-        mottaker: mottaker,
-        melding: melding
-      }.to_json)
-  rescue
-    puts "feilet å sende melding"
+    $client[mottaker].put({
+      avsender: $meg,
+      mottaker: mottaker,
+      melding: melding
+    }.to_json)
+  rescue Exception => e
+    puts "Feilet å sende melding, exception: #{e.inspect}"
   end
 end
 

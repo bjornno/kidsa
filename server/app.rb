@@ -11,4 +11,5 @@ end
 put '/:name/?' do
   message = JSON.parse(request.body.read, symbolize_names: true)
   $messages[params[:name]] = message
+  200
 end
