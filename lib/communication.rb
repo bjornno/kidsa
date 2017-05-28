@@ -9,7 +9,8 @@ $client = RestClient::Resource.new(
   $server_addr,
   headers: {
     'Content-Type' => 'application/json'
-  }
+  },
+  verify_ssl: OpenSSL::SSL::VERIFY_NONE
 )
 
 def abonner(mottaker, display_func)
@@ -22,13 +23,14 @@ def abonner(mottaker, display_func)
         melding = t
         display_func.call(melding)
       end
-    rescue
+    rescue Exception => e
+    puts "Feilet å motta melding, exception: #{e.inspect}"
     end
     sleep 2
   end
 end
 
-def send_melding(mottaker, avsender, melding, kryptert)
+def send_melding(mottaker, avsender, melding, kryptert=false)
   begin
     puts "sender melding til #{mottaker}"
     5.times do 
